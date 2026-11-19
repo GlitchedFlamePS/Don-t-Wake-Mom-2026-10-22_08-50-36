@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -11,6 +12,9 @@ public class PlayerVariables : MonoBehaviour
     public float timeSinceLastSound = 0f;
     public float angerValue = 1f;
 
+    public event Action OnMaxSoundReached;      // Mum wakes
+    public event Action<float> OnSoundAfterMax; // Mum walks
+    bool maxReached;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -31,11 +35,18 @@ public class PlayerVariables : MonoBehaviour
 
     public void IncreaseSound(float sound)
     {
-        soundValue += sound;
-        if(soundValue >= maxSoundValue)
+        if (!maxReached)
         {
-           
-            Invoke("KillPlayer", 4f);
+            soundValue = Mathf.Min(soundValue + sound, maxSoundValue);
+            if (soundValue >= maxSoundValue)
+            {
+                maxReached = true;
+                OnMaxSoundReached?.Invoke();
+            }
+        }
+        else
+        {
+            OnSoundAfterMax?.Invoke(sound);
         }
     }
 
